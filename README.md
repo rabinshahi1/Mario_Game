@@ -1,0 +1,3 @@
+-Requirement download SFML and include it
+- cmd to compile --- mingw32-make
+- then run the main.exe file which is created

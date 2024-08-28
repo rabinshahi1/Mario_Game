@@ -4,7 +4,14 @@
 using namespace std;
 AudioManager::AudioManager()
 {
-    
+    if(!eatBuffer.loadFromFile("./Resources/Audios/Eating.wav"))
+    {
+        std::cout<<"Opps problem in loading";
+    }
+    else{
+        eatSound.setBuffer(eatBuffer);
+        
+    }
     if(!jumpBuffer.loadFromFile("./Resources/Audios/jump.wav"))
     {
         std::cout<<"Opps problem in loading";
@@ -38,23 +45,25 @@ AudioManager::AudioManager()
         
         deathSound.setBuffer(deathBuffer); 
     }
-     if(!eatBuffer.loadFromFile("./Resources/Audios/Eating.wav"))
+     if(!introBuffer.loadFromFile("./Resources/Audios/Intro.wav"))
     {
         std::cout<<"Opps problem in loading";
     }
     else
     {
         
-        eatSound.setBuffer(eatBuffer); 
+        introSound.setBuffer(introBuffer); 
     }
-    
-
     
 }
 void AudioManager::playJumpSound()
 {
    jumpSound.play();
-
+}
+void AudioManager::stopIntroSound()
+{
+   introSound.stop();
+   introSound.setPlayingOffset(sf::Time::Zero);
 }
 void AudioManager::playCoinSound()
 {
@@ -71,8 +80,27 @@ void AudioManager::playRedHpSound()
    redHpSound.play();
 
 }
-void AudioManager::playEatSound()
+void AudioManager::playIntroSound()
 {
-   eatSound.play();
+   introSound.play();
 
+}
+void AudioManager :: stopDeathSound()
+{
+    deathSound.stop();
+    deathSound.setPlayingOffset(sf::Time::Zero);
+}
+void AudioManager :: resetDeathSound()
+
+{
+    deathSound.setPlayingOffset(sf::Time::Zero);
+}
+void AudioManager :: resetIntroSound()
+
+{
+    introSound.setPlayingOffset(sf::Time::Zero);
+}
+void AudioManager :: playEatSound()
+{
+    eatSound.play();
 }

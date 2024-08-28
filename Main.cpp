@@ -18,6 +18,7 @@ int main()
 	unsigned char current_level = 0;
 
 	unsigned short level_finish = 0;
+	bool startGame=false;
 
 	//We'll use this to make the game framerate-independent.
 	std::chrono::microseconds lag(0);
@@ -52,14 +53,14 @@ int main()
 		lag += delta_time;
 
 		previous_time += delta_time;
-
-		//Soooooo, how was your day?
-		//Mine was good. I ate some cookies.
-		//Then I watched Youtube.
-		//...
-		//...
-		//...
-		//Yeah.
+		// if(!startGame)
+		// {
+		// 	while (window.pollEvent(event))
+		// 	{
+				
+		// 	}
+			
+		// }
 
 		while (FRAME_DURATION <= lag)
 		{

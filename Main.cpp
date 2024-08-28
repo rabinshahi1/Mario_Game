@@ -2,7 +2,6 @@
 #include <chrono>
 #include <cmath>
 #include <SFML/Graphics.hpp>
-
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
 #include "Headers/MapManager.hpp"
@@ -12,147 +11,189 @@
 #include "Headers/Goomba.hpp"
 #include "Headers/Koopa.hpp"
 #include "Headers/ConvertSketch.hpp"
+#include "./Headers/AudioManager.h"
+#include<iostream>
 
-int main()
-{
-	unsigned char current_level = 0;
+int main() {
+    // Create the SFML window
+    sf::RenderWindow window(sf::VideoMode(SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT), "Super Mario Bros", sf::Style::Close);
 
-	unsigned short level_finish = 0;
-	bool startGame=false;
+    sf::Clock clk;
+    AudioManager audio;
+    sf::Font font;
+    // Load the background image for the loading screen
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("./Resources/Images/loading.jpg")) {
+        std::cout << "Error loading image!" << std::endl;
+        return -1;
+    }
 
-	//We'll use this to make the game framerate-independent.
-	std::chrono::microseconds lag(0);
+    // Create a sprite for the background image
+    sf::Sprite backgroundSprite;
+    backgroundSprite.setTexture(backgroundTexture);
 
-	std::chrono::steady_clock::time_point previous_time;
+    // Scale the background image to fit the window
+    
+    sf::Vector2u imageSize = backgroundTexture.getSize();
+    float scaleX = (float)(SCREEN_RESIZE * SCREEN_WIDTH) / imageSize.x;
+    float scaleY = (float)(SCREEN_RESIZE * SCREEN_HEIGHT) / imageSize.y;
+    backgroundSprite.setScale(scaleX, scaleY);
 
-	//Using smart pointer because I'm smart.
-	//(Because we need to store both Goomba and Koopa objects in the same vector).
-	std::vector<std::shared_ptr<Enemy>> enemies;
+    // Load a font
+ 
+    if (!font.loadFromFile("./Resources/Fonts/Font.otf")) {
+        std::cerr << "Error loading font!" << std::endl;
+        return -1;
+    }
 
-	sf::Color background_color = sf::Color(0, 219, 255);
+    // Create the text object
+    sf::Text startText("Press (P) to Start", font, 50);
+    startText.setFillColor(sf::Color::Black);
+    startText.setPosition(550, 470); // Position the text where you want
 
-	sf::Event event;
+    // Variables for text animation
+    sf::Clock tclk;
+    bool showText = true;
+    bool startIntro = true;
+    bool gameStarted = false;
 
-	sf::RenderWindow window(sf::VideoMode(SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT), "Super Mario Bros", sf::Style::Close);
-	window.setPosition(sf::Vector2i(window.getPosition().x, window.getPosition().y - 90));
+    // Main loop
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
 
-	sf::View view(sf::FloatRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
+            // Start the game if "P" is pressed
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+                audio.stopIntroSound();
+                startIntro = false;
+                gameStarted = true;
+            }
+        }
 
-	MapManager map_manager;
+        if (!gameStarted) {
+            // Animate the text: toggle visibility every 0.8 seconds
+            if (tclk.getElapsedTime().asSeconds() > 0.8f) {
+                showText = !showText;
+                tclk.restart();
+            }
 
-	Mario mario;
+            // Clear the window
+            window.clear();
 
-	convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
+            // Draw the background image
+            window.draw(backgroundSprite);
 
-	previous_time = std::chrono::steady_clock::now();
+            // Draw the animated text if it's visible
+            if (showText) {
+                window.draw(startText);
+            }
 
-	while (1 == window.isOpen())
-	{
-		std::chrono::microseconds delta_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - previous_time);
+            // Play the intro sound in a loop until "P" is pressed
+            if (startIntro) {
+                audio.playIntroSound();
+                clk.restart();
+                startIntro = false;
+            }
+            if (clk.getElapsedTime().asSeconds() >= 12.5f) {
+                audio.resetIntroSound();
+                startIntro = true;
+            }
 
-		lag += delta_time;
+            // Display the contents of the window
+            window.display();
+        } else {
+            // Game logic starts here after pressing "P"
+            // The following is the main game logic
+            unsigned char current_level = 0;
+            unsigned short level_finish = 0;
 
-		previous_time += delta_time;
-		// if(!startGame)
-		// {
-		// 	while (window.pollEvent(event))
-		// 	{
-				
-		// 	}
-			
-		// }
+            std::chrono::microseconds lag(0);
+            std::chrono::steady_clock::time_point previous_time;
 
-		while (FRAME_DURATION <= lag)
-		{
-			unsigned view_x;
+            std::vector<std::shared_ptr<Enemy>> enemies;
+            sf::Color background_color = sf::Color(0, 219, 255);
+            sf::View view(sf::FloatRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
 
-			lag -= FRAME_DURATION;
+            MapManager map_manager;
+            Mario mario;
 
-			while (1 == window.pollEvent(event))
-			{
-				switch (event.type)
-				{
-					case sf::Event::Closed:
-					{
-						window.close();
+            convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
 
-						break;
-					}
-					case sf::Event::KeyPressed:
-					{
-						switch (event.key.code)
-						{
-							case sf::Keyboard::Enter:
-							{
-								enemies.clear();
+            previous_time = std::chrono::steady_clock::now();
 
-								mario.reset();
+            while (1 == window.isOpen()) {
+                std::chrono::microseconds delta_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - previous_time);
 
-								convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
-							}
-						}
-					}
-				}
-			}
+                lag += delta_time;
+                previous_time += delta_time;
 
-			//Once Mario goes beyond the finish, we move on to the next level.
-			if (CELL_SIZE * level_finish <= mario.get_x())
-			{
-				current_level++;
+                while (FRAME_DURATION <= lag) {
+                    unsigned view_x;
 
-				enemies.clear();
+                    lag -= FRAME_DURATION;
 
-				mario.reset();
+                    while (1 == window.pollEvent(event)) {
+                        switch (event.type) {
+                            case sf::Event::Closed:
+                                window.close();
+                                break;
+                            case sf::Event::KeyPressed:
+                                if (event.key.code == sf::Keyboard::Enter) {
+                                    enemies.clear();
+                                    mario.reset();
+                                    convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
+                                }
+                                break;
+                        }
+                    }
 
-				convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
-			}
+                    // Level progression logic
+                    if (CELL_SIZE * level_finish <= mario.get_x()) {
+                        current_level++;
+                        enemies.clear();
+                        mario.reset();
+                        convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
+                    }
 
-			//Keeping Mario at the center of the view.
-			view_x = std::clamp<int>(round(mario.get_x()) - 0.5f * (SCREEN_WIDTH - CELL_SIZE), 0, CELL_SIZE * map_manager.get_map_width() - SCREEN_WIDTH);
+                    // Keeping Mario at the center of the view
+                    view_x = std::clamp<int>(round(mario.get_x()) - 0.5f * (SCREEN_WIDTH - CELL_SIZE), 0, CELL_SIZE * map_manager.get_map_width() - SCREEN_WIDTH);
 
-			map_manager.update();
+                    map_manager.update();
+                    mario.update(view_x, map_manager);
 
-			mario.update(view_x, map_manager);
+                    for (unsigned short a = 0; a < enemies.size(); a++) {
+                        enemies[a]->update(view_x, enemies, map_manager, mario);
+                    }
 
-			for (unsigned short a = 0; a < enemies.size(); a++)
-			{
-				enemies[a]->update(view_x, enemies, map_manager, mario);
-			}
+                    for (unsigned short a = 0; a < enemies.size(); a++) {
+                        if (1 == enemies[a]->get_dead(1)) {
+                            enemies.erase(a + enemies.begin());
+                            a--;
+                        }
+                    }
 
-			for (unsigned short a = 0; a < enemies.size(); a++)
-			{
-				if (1 == enemies[a]->get_dead(1))
-				{
-					//We don't have to worry about memory leaks since we're using SMART POINTERS!
-					enemies.erase(a + enemies.begin());
+                    if (FRAME_DURATION > lag) {
+                        view.reset(sf::FloatRect(view_x, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
+                        window.setView(view);
+                        window.clear(background_color);
 
-					a--;
-				}
-			}
+                        map_manager.draw_map(1, sf::Color(0, 0, 85) == background_color, view_x, window);
+                        mario.draw_mushrooms(view_x, window);
+                        map_manager.draw_map(0, sf::Color(0, 0, 85) == background_color, view_x, window);
 
-			if (FRAME_DURATION > lag)
-			{
-				view.reset(sf::FloatRect(view_x, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
+                        for (unsigned short a = 0; a < enemies.size(); a++) {
+                            enemies[a]->draw(view_x, window);
+                        }
 
-				window.setView(view);
-				window.clear(background_color);
+                        mario.draw(window);
+                        window.display();
+                    }
+                }
+            }
+        }
+    }
 
-				//If the background color is sf::Color(0, 0, 85), the level is underground.
-				map_manager.draw_map(1, sf::Color(0, 0, 85) == background_color, view_x, window);
-
-				mario.draw_mushrooms(view_x, window);
-
-				map_manager.draw_map(0, sf::Color(0, 0, 85) == background_color, view_x, window);
-
-				for (unsigned short a = 0; a < enemies.size(); a++)
-				{
-					enemies[a]->draw(view_x, window);
-				}
-
-				mario.draw(window);
-
-				window.display();
-			}
-		}
-	}
+    return 0;
 }

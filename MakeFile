@@ -1,8 +1,8 @@
 all:compile link
 compile : 
-	 g++ -c Game.cpp AudioManager.cpp Animation.cpp ConvertSketch.cpp DrawMap.cpp Enemy.cpp Goomba.cpp Koopa.cpp MapCollision.cpp MapManager.cpp Mario.cpp Mushroom.cpp -IC:\SFML-2.6.1\include -DSFML_STATIC   
+	 g++ -c Main.cpp AudioManager.cpp Animation.cpp ConvertSketch.cpp DrawMap.cpp Enemy.cpp Goomba.cpp Koopa.cpp MapCollision.cpp MapManager.cpp Mario.cpp Mushroom.cpp -IC:\SFML-2.6.1\include -DSFML_STATIC   
 
 link:
-	 g++ Game.o Animation.o AudioManager.o ConvertSketch.o DrawMap.o Enemy.o Goomba.o Koopa.o MapCollision.o MapManager.o Mario.o Mushroom.o -o Main -LC:\SFML-2.6.1\lib -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -mwindows -lgdi32 -lwinmm -lsfml-audio
+	 g++ Main.o Animation.o AudioManager.o ConvertSketch.o DrawMap.o Enemy.o Goomba.o Koopa.o MapCollision.o MapManager.o Mario.o Mushroom.o -o Main -LC:\SFML-2.6.1\lib -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -mwindows -lgdi32 -lwinmm -lsfml-audio
 clean:
-	del  Game.exe Main.o Animation.o AudioManager.o ConvertSketch.o DrawMap.o Enemy.o Goomba.o Koopa.o MapCollision.o MapManager.o Mario.o Mushroom.o
+	del  Main.exe Main.o Animation.o AudioManager.o ConvertSketch.o DrawMap.o Enemy.o Goomba.o Koopa.o MapCollision.o MapManager.o Mario.o Mushroom.o

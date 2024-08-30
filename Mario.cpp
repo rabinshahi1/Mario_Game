@@ -2,7 +2,7 @@
 #include <chrono>
 #include <cmath>
 #include <SFML/Graphics.hpp>
-
+#include<SFML/Window.hpp>
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
 #include "Headers/MapManager.hpp"
@@ -10,8 +10,11 @@
 #include "Headers/Mario.hpp"
 #include"Headers/AudioManager.h"
 
+
+
 AudioManager sound;
 Mario::Mario() :
+ 
 	crouching(0),
 	dead(0),
 	flipped(0),
@@ -29,7 +32,9 @@ Mario::Mario() :
 	big_walk_animation(CELL_SIZE, "Resources/Images/BigMarioWalk.png", MARIO_WALK_ANIMATION_SPEED),
 	walk_animation(CELL_SIZE, "Resources/Images/MarioWalk.png", MARIO_WALK_ANIMATION_SPEED)
 {
+	marioDead=false;
 	texture.loadFromFile("Resources/Images/MarioIdle.png");
+	score=0;
 
 	sprite.setTexture(texture);
 }
@@ -38,6 +43,11 @@ bool Mario::get_dead() const
 {
 	return dead;
 }
+void Mario::setScore()
+{
+	score=0;
+}
+
 
 float Mario::get_vertical_speed() const
 {
@@ -47,6 +57,15 @@ float Mario::get_vertical_speed() const
 float Mario::get_x() const
 {
 	return x;
+}
+void Mario::updateScore()
+{
+	score=score+10;
+	   
+}
+int  Mario::getScore()
+{
+    return score;
 }
 
 void Mario::die(const bool i_instant_death)
@@ -68,15 +87,19 @@ void Mario::die(const bool i_instant_death)
 			texture.loadFromFile("Resources/Images/BigMarioDeath.png");
 		}
 	}
-	//Mario dies, unless he's big.
+	//Mario dies
 	else if (0 == growth_timer && 0 == invincible_timer)
 	{
 		if (0 == powerup_state)
 		{
 			dead = 1;
 			sound.playDeathSound();
+			// marioDead=true;
 
 			texture.loadFromFile("Resources/Images/MarioDeath.png");
+			
+			
+			
 		}
 		else
 		{
@@ -238,7 +261,10 @@ void Mario::draw_mushrooms(const unsigned i_view_x, sf::RenderWindow& i_window)
 		mushroom.draw(i_view_x, i_window);
 	}
 }
-
+bool Mario::deadMario()
+{
+	return marioDead;
+}
 void Mario::reset()
 {
 	crouching = 0;
@@ -504,6 +530,9 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 					else
 					{
 						i_map_manager.add_question_block_coin(CELL_SIZE * cell.x, CELL_SIZE * cell.y);
+						updateScore();
+						sound.playCoinSound();
+						
 					}
 				}
 
@@ -584,6 +613,7 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 		{
 			i_map_manager.set_map_cell(cell.x, cell.y, Cell::Empty);
 			sound.playCoinSound();
+			updateScore();
 		}
 
 		if (0 < growth_timer)

@@ -14,11 +14,19 @@
 #include "./Headers/AudioManager.h"
 #include<iostream>
 
+ 
 int main() {
+	bool  showText = true;
+  bool startIntro = true;
+   bool gameStarted=false ;
+   bool pauseGame=false;
+
+  
     // Create the SFML window
     sf::RenderWindow window(sf::VideoMode(SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT), "Super Mario Bros", sf::Style::Close);
 
     sf::Clock clk;
+    
     AudioManager audio;
     sf::Font font;
     // Load the background image for the loading screen
@@ -27,6 +35,7 @@ int main() {
         std::cout << "Error loading image!" << std::endl;
         return -1;
     }
+ 
 
     // Create a sprite for the background image
     sf::Sprite backgroundSprite;
@@ -48,14 +57,16 @@ int main() {
 
     // Create the text object
     sf::Text startText("Press (P) to Start", font, 50);
+  
+	 sf::Text myScore("SCORE : 0" ,font,40);
+    myScore.setFillColor(sf::Color::Black);
     startText.setFillColor(sf::Color::Black);
     startText.setPosition(550, 470); // Position the text where you want
 
     // Variables for text animation
     sf::Clock tclk;
-    bool showText = true;
-    bool startIntro = true;
-    bool gameStarted = false;
+   
+   
 
     // Main loop
     while (window.isOpen()) {
@@ -69,10 +80,13 @@ int main() {
                 audio.stopIntroSound();
                 startIntro = false;
                 gameStarted = true;
+				
+               
             }
+			
         }
 
-        if (!gameStarted) {
+        if (!gameStarted ) {
             // Animate the text: toggle visibility every 0.8 seconds
             if (tclk.getElapsedTime().asSeconds() > 0.8f) {
                 showText = !showText;
@@ -103,11 +117,13 @@ int main() {
 
             // Display the contents of the window
             window.display();
-        } else {
+        } else{
+
             // Game logic starts here after pressing "P"
             // The following is the main game logic
             unsigned char current_level = 0;
             unsigned short level_finish = 0;
+           
 
             std::chrono::microseconds lag(0);
             std::chrono::steady_clock::time_point previous_time;
@@ -118,6 +134,7 @@ int main() {
 
             MapManager map_manager;
             Mario mario;
+          
 
             convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
 
@@ -143,14 +160,21 @@ int main() {
                                 if (event.key.code == sf::Keyboard::Enter) {
                                     enemies.clear();
                                     mario.reset();
+                                    
+                                    mario.setScore();
                                     convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
                                 }
+                                if(event.key.code ==sf::Keyboard::Space)
+                                {
+                                  pauseGame=!pauseGame;
+                                }
                                 break;
+                           
                         }
                     }
-
-                    // Level progression logic
-                    if (CELL_SIZE * level_finish <= mario.get_x()) {
+                    if(!pauseGame)
+                    {
+                                if (CELL_SIZE * level_finish <= mario.get_x()) {
                         current_level++;
                         enemies.clear();
                         mario.reset();
@@ -173,10 +197,23 @@ int main() {
                             a--;
                         }
                     }
+                      if(mario.getScore())
+                    {
+                      
+                      myScore.setString("SCORE : "+std::to_string(mario.getScore()));
+                    }
+                    else{
+                        myScore.setString("SCORE : 0");
+                    }
+                    
 
                     if (FRAME_DURATION > lag) {
                         view.reset(sf::FloatRect(view_x, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
                         window.setView(view);
+                      
+                        
+                         
+                           myScore.setPosition(view_x + 20, 1);
                         window.clear(background_color);
 
                         map_manager.draw_map(1, sf::Color(0, 0, 85) == background_color, view_x, window);
@@ -187,12 +224,31 @@ int main() {
                             enemies[a]->draw(view_x, window);
                         }
 
+
                         mario.draw(window);
+                        window.draw(myScore);
+                        
                         window.display();
                     }
+                    }
+
+            
+                 
                 }
             }
         }
+
+    // End Segment
+		// if(endPart)
+		// {
+          
+			
+		// 	window.clear();
+		// 	window.draw(endTextOne);
+		// 	window.draw(endTextTwo);
+		// 	window.display();
+		
+		// }
     }
 
     return 0;

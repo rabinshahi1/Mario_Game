@@ -4,6 +4,14 @@
 using namespace std;
 AudioManager::AudioManager()
 {
+    if(!hitBuffer.loadFromFile("./Resources/Audios/hitEnemy.wav"))
+    {
+        std::cout<<"Opps problem in loading";
+    }
+    else 
+    {
+        hitSound.setBuffer(hitBuffer);
+    }
     if(!eatBuffer.loadFromFile("./Resources/Audios/Eating.wav"))
     {
         std::cout<<"Opps problem in loading";
@@ -95,6 +103,7 @@ void AudioManager :: resetDeathSound()
 {
     deathSound.setPlayingOffset(sf::Time::Zero);
 }
+
 void AudioManager :: resetIntroSound()
 
 {
@@ -103,4 +112,8 @@ void AudioManager :: resetIntroSound()
 void AudioManager :: playEatSound()
 {
     eatSound.play();
+}
+void AudioManager :: playHitSound()
+{
+    hitSound.play();
 }

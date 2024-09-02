@@ -93,8 +93,8 @@ void Mario::die(const bool i_instant_death)
 		if (0 == powerup_state)
 		{
 			dead = 1;
-			sound.playDeathSound();
-			// marioDead=true;
+			
+			deadMario();
 
 			texture.loadFromFile("Resources/Images/MarioDeath.png");
 			
@@ -261,7 +261,15 @@ void Mario::draw_mushrooms(const unsigned i_view_x, sf::RenderWindow& i_window)
 		mushroom.draw(i_view_x, i_window);
 	}
 }
-bool Mario::deadMario()
+void Mario::deadMario()
+{ marioDead=true;
+	
+}
+void Mario::updateStatus()
+{
+	marioDead=false;
+}
+bool Mario::marioStatus()
 {
 	return marioDead;
 }

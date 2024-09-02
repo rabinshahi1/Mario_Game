@@ -38,8 +38,11 @@ public:
 	Mario();
     void updateScore ();
 	int getScore();
+	bool marioStatus();
+	void updateStatus();
 	
 	void setScore();
+	void deadMario();
 
 	bool get_dead() const;
 
@@ -53,6 +56,6 @@ public:
 	void set_position(const float i_x, const float i_y);
 	void set_vertical_speed(const float i_value);
 	void update(const unsigned i_view_x, MapManager& i_map_manager);
-   bool deadMario();
+   
 	sf::FloatRect get_hit_box() const;
 };

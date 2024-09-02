@@ -20,15 +20,22 @@ int main() {
   bool startIntro = true;
    bool gameStarted=false ;
    bool pauseGame=false;
+   bool mDead=false;
+   bool endPart=false;
+   bool startClock=true;
+   
+  
 
   
     // Create the SFML window
     sf::RenderWindow window(sf::VideoMode(SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT), "Super Mario Bros", sf::Style::Close);
 
-    sf::Clock clk;
+    sf::Clock clk,deathAnimationClock;
     
+    
+    Mario mario;
     AudioManager audio;
-    sf::Font font;
+    sf::Font fontOne,roboFont;
     // Load the background image for the loading screen
     sf::Texture backgroundTexture;
     if (!backgroundTexture.loadFromFile("./Resources/Images/loading.jpg")) {
@@ -48,18 +55,27 @@ int main() {
     float scaleY = (float)(SCREEN_RESIZE * SCREEN_HEIGHT) / imageSize.y;
     backgroundSprite.setScale(scaleX, scaleY);
 
-    // Load a font
+    // Load  font
  
-    if (!font.loadFromFile("./Resources/Fonts/Font.otf")) {
+    if (!fontOne.loadFromFile("./Resources/Fonts/Font.otf")) {
         std::cerr << "Error loading font!" << std::endl;
         return -1;
     }
+    if (!roboFont.loadFromFile("./Resources/Fonts/Robo.ttf")) {
+        std::cerr << "Error loading font!" << std::endl;
+        return -1;
+    }
+    sf::Text endTextOne("Press (Enter) to restart",fontOne,30),endTextTwo("Press (Q) to Quit",fontOne,30),score("SCORE : 0",roboFont,40);
+    
+     
+   
 
     // Create the text object
-    sf::Text startText("Press (P) to Start", font, 50);
+    sf::Text startText("Press (P) to Start", fontOne, 50);
   
-	 sf::Text myScore("SCORE : 0" ,font,40);
+	 sf::Text myScore("SCORE : 0" ,roboFont,30);
     myScore.setFillColor(sf::Color::Black);
+  
     startText.setFillColor(sf::Color::Black);
     startText.setPosition(550, 470); // Position the text where you want
 
@@ -72,8 +88,7 @@ int main() {
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
+            if (event.type == sf::Event::Closed  || sf::Keyboard::isKeyPressed(sf::Keyboard::Q))  window.close();
 
             // Start the game if "P" is pressed
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
@@ -83,7 +98,7 @@ int main() {
 				
                
             }
-			
+            	
         }
 
         if (!gameStarted ) {
@@ -117,7 +132,7 @@ int main() {
 
             // Display the contents of the window
             window.display();
-        } else{
+        } if(gameStarted ){
 
             // Game logic starts here after pressing "P"
             // The following is the main game logic
@@ -133,7 +148,7 @@ int main() {
             sf::View view(sf::FloatRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
 
             MapManager map_manager;
-            Mario mario;
+          
           
 
             convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
@@ -145,6 +160,12 @@ int main() {
 
                 lag += delta_time;
                 previous_time += delta_time;
+                // if(mario.marioStatus())
+                // {
+                //     endPart=true;
+                //     break;
+                // }
+               
 
                 while (FRAME_DURATION <= lag) {
                     unsigned view_x;
@@ -158,21 +179,34 @@ int main() {
                                 break;
                             case sf::Event::KeyPressed:
                                 if (event.key.code == sf::Keyboard::Enter) {
+                                    if(endPart)
+                                    {
+                                        endPart=false;
+                                      startClock=true;
                                     enemies.clear();
                                     mario.reset();
-                                    
+                                    audio.stopDeathSound();
+                                    audio.resetDeathSound();
+                                    mDead=false;
+                                    mario.updateStatus();
                                     mario.setScore();
                                     convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
+                                    }
                                 }
                                 if(event.key.code ==sf::Keyboard::Space)
                                 {
                                   pauseGame=!pauseGame;
                                 }
+                                if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+                                {
+                                    window.close();
+                                }
+                               
                                 break;
                            
                         }
                     }
-                    if(!pauseGame)
+                    if(!pauseGame && !endPart)
                     {
                                 if (CELL_SIZE * level_finish <= mario.get_x()) {
                         current_level++;
@@ -214,6 +248,7 @@ int main() {
                         
                          
                            myScore.setPosition(view_x + 20, 1);
+                          
                         window.clear(background_color);
 
                         map_manager.draw_map(1, sf::Color(0, 0, 85) == background_color, view_x, window);
@@ -226,29 +261,63 @@ int main() {
 
 
                         mario.draw(window);
-                        window.draw(myScore);
+                        if(current_level==0)
+                        {
+                                window.draw(myScore);
+                                
+                        }
+                        else{
+                            myScore.setFillColor(sf::Color::White);
+                          
+                            window.draw(myScore);
+                            
+                        }
+                       
                         
                         window.display();
                     }
+                    if(mario.marioStatus() && !mDead)
+                    
+                    { 
+                        mDead=true;
+                      audio.playDeathSound();
                     }
+                    if(mario.marioStatus() && startClock)
+                    {
+                         deathAnimationClock.restart();
+                         startClock=false;
+                         
+                        
+                    }
+                    if(!startClock && (deathAnimationClock.getElapsedTime().asSeconds()>=3)) {
+                      
+                        endPart=true;
+                        break;
+                    }
+                    }
+                    if(endPart)
+                    {
+                        score.setPosition(view_x+40,10.0f);
+                        endTextOne.setPosition(view_x+40,60.f);
+                        endTextTwo.setPosition(view_x+40,90.f);
+                        score.setString("SCORE : "+ std::to_string(mario.getScore()));
+                        window.clear();
+                        
+                        window.draw(score);
+                        window.draw(endTextOne);
+                        window.draw(endTextTwo);
+                        window.display();
+                    }
+                  
 
             
                  
                 }
             }
-        }
 
-    // End Segment
-		// if(endPart)
-		// {
-          
-			
-		// 	window.clear();
-		// 	window.draw(endTextOne);
-		// 	window.draw(endTextTwo);
-		// 	window.display();
-		
-		// }
+        }
+       
+       
     }
 
     return 0;

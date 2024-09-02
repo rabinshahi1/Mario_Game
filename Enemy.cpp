@@ -9,6 +9,7 @@
 #include "Headers/Mario.hpp"
 #include "Headers/Enemy.hpp"
 
+
 Enemy::Enemy(const float i_x, const float i_y) :
 	dead(0),
 	horizontal_speed(0),

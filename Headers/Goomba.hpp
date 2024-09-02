@@ -14,7 +14,7 @@ class Goomba : public Enemy
 	bool no_collision_dying;
 	//The underground Goomba looks different than the regular Goomba.
 	bool underground;
-
+  
 	unsigned short death_timer;
 
 	sf::Sprite sprite;
@@ -23,8 +23,9 @@ class Goomba : public Enemy
 
 	Animation walk_animation;
 public:
+ 
 	Goomba(const bool i_underground, const float i_x, const float i_y);
-
+   
 	bool get_dead(const bool i_deletion) const;
 
 	void die(const unsigned char i_death_type);

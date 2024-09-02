@@ -9,8 +9,10 @@
 #include "Headers/Mushroom.hpp"
 #include "Headers/Mario.hpp"
 #include "Headers/Enemy.hpp"
-#include "Headers/Goomba.hpp"
 
+#include "Headers/Goomba.hpp"
+#include "./Headers/AudioManager.h"
+AudioManager soundEffect;
 Goomba::Goomba(const bool i_underground, const float i_x, const float i_y) :
 	Enemy(i_x, i_y),
 	no_collision_dying(0),
@@ -62,6 +64,8 @@ void Goomba::die(const unsigned char i_death_type)
 			{
 				death_timer--;
 			}
+			soundEffect.playHitSound();
+
 
 			break;
 		}

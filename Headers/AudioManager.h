@@ -5,8 +5,8 @@
 class AudioManager
 {
     private:
-    sf::SoundBuffer jumpBuffer ,coinBuffer,deathBuffer,redHpBuffer,introBuffer,eatBuffer;
-    sf::Sound jumpSound,coinSound,deathSound,redHpSound,introSound,eatSound;
+    sf::SoundBuffer jumpBuffer ,coinBuffer,deathBuffer,redHpBuffer,introBuffer,eatBuffer,hitBuffer;
+    sf::Sound jumpSound,coinSound,deathSound,redHpSound,introSound,eatSound,hitSound;
     public:
     AudioManager();
     void playJumpSound();
@@ -19,6 +19,7 @@ class AudioManager
     void playRedHpSound();
     void playIntroSound();
     void playEatSound();
+    void playHitSound();
 };
 
 #endif
